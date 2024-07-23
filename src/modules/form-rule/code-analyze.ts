@@ -70,5 +70,5 @@ function constructMemberExpressionPath({
 }
 
 function extractUsedPropertyCode(path: string[]) {
-  return path[0] === 'cx' ? path.pop() : undefined
+  return path[0] === 'cx' ? path[1] ?? undefined : undefined
 }

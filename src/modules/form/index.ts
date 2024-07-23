@@ -2,22 +2,35 @@ import type { FormRuleModel } from '../form-rule'
 import { initJsCodeEvaluator } from '../js-evaluator'
 
 export interface FormModel {
-  firstName?: string
-  lastName?: string
-  middleName?: string
-  fullname?: string
-  email?: string
-  kksCode?: string
-  kksInstallation?: string
-  kksSystemCode?: string
-  kksSystem?: string
-  kksSystemNumber?: string
-  kksUnit?: string
-  kksUnitNumber?: string
+  firstName: string
+  lastName: string
+  middleName: string
+  fullname: string
+  email: string
+  kksCode: string
+  kksInstallation: string
+  kksSystemCode: string
+  kksSystem: string
+  kksSystemNumber: string
+  kksUnit: string
+  kksUnitNumber: string
 }
 
 export function initForm(): FormModel {
-  return {}
+  return {
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    fullname: '',
+    email: '',
+    kksCode: '',
+    kksInstallation: '',
+    kksSystemCode: '',
+    kksSystem: '',
+    kksSystemNumber: '',
+    kksUnit: '',
+    kksUnitNumber: ''
+  }
 }
 
 function isFormModel(value: unknown): value is FormModel {
@@ -30,7 +43,10 @@ export function initFormRulesEvaluator() {
   return {
     evaluate: async (form: FormModel, rules: FormRuleModel[]) => {
       const codes = rules.map(({ code }) => code).filter(Boolean) as string[]
-      const output = await evaluateJsCode({ context: form, codes })
+      const output = await evaluateJsCode({
+        context: form,
+        codes
+      })
       if (output.status === 'error') {
         output.errors.forEach(console.error)
         return form

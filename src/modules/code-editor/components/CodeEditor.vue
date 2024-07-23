@@ -5,7 +5,12 @@
 <script setup lang="ts">
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
-import { esLint, javascript } from '@codemirror/lang-javascript'
+import {
+  esLint,
+  javascript,
+  javascriptLanguage,
+  scopeCompletionSource
+} from '@codemirror/lang-javascript'
 import { bracketMatching, defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { linter } from '@codemirror/lint'
 import { EditorState } from '@codemirror/state'
@@ -23,6 +28,7 @@ import { onMounted, ref, watch } from 'vue'
 import { theme } from '../theme'
 
 interface Props {
+  scope?: Record<string, unknown>
   eslintConfig?: Record<string, unknown>
 }
 const props = defineProps<Props>()
@@ -32,15 +38,9 @@ const code = defineModel<string>()
 const editorRef = ref<HTMLDivElement>()
 
 const esLinter = new Linter()
-const esLintRules: Record<string, number | string[]> = {}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-esLinter.getRules().forEach((desc: any, name: string) => {
-  if (desc.meta.docs.recommended) esLintRules[name] = 2
-})
 const eslintConfig = {
-  parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
-  ...props.eslintConfig,
-  rules: { ...esLintRules, ...(props.eslintConfig?.rules ?? {}) }
+  parserOptions: { ecmaVersion: 2022, sourceType: 'module' },
+  ...props.eslintConfig
 }
 
 const state = EditorState.create({
@@ -56,6 +56,9 @@ const state = EditorState.create({
     closeBrackets(),
     bracketMatching(),
     autocompletion(),
+    javascriptLanguage.data.of({
+      autocomplete: scopeCompletionSource(props.scope)
+    }),
     keymap.of([...defaultKeymap, indentWithTab]),
     EditorView.updateListener.of(handleEditorViewUpdate),
     linter(esLint(esLinter, eslintConfig))
@@ -114,6 +117,7 @@ onMounted(() => {
   min-height: 100px;
   max-height: 400px;
   border-radius: 4px;
+  border: 1px solid #000;
 }
 
 .code-editor ::v-deep(.cm-editor) {

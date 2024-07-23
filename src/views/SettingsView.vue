@@ -5,7 +5,7 @@
         <NDynamicInput v-model:value="rules" :on-create="handleCreate">
           <template #create-button-default> Добавить правило </template>
           <template #default="{ value }">
-            <CodeEditor v-model="value.code" :eslint-config="eslintConfig" />
+            <CodeEditor v-model="value.code" :eslint-config="eslintConfig" :scope="{ cx }" />
           </template>
         </NDynamicInput>
       </NGi>
@@ -25,14 +25,22 @@ import { useSettingsStore } from '@/stores/settings'
 import { NButton, NDynamicInput, NGi, NGrid } from 'naive-ui'
 import { ref } from 'vue'
 import ViewLayout from './ViewLayout.vue'
+import { initForm } from '@/modules/form'
+import { JS_DANGEROUS_OBJECTS } from '@/modules/js-evaluator/safe-objects'
 
 const settingsStore = useSettingsStore()
 
 const rules = ref(settingsStore.rules)
+const cx = initForm()
 
 const eslintConfig = {
+  env: { worker: true },
   globals: {
     cx: 'readonly'
+  },
+  rules: {
+    'no-restricted-globals': ['error', ...JS_DANGEROUS_OBJECTS],
+    'no-undef': ['error']
   }
 }
 

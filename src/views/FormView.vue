@@ -98,7 +98,7 @@ import ViewLayout from './ViewLayout.vue'
 const settingsStore = useSettingsStore()
 const form = ref(initForm())
 
-const { evaluate, terminate: terminateRulesEvaluator } = initFormRulesEvaluator()
+const { evaluate: evaluateRules, terminate: terminateRulesEvaluator } = initFormRulesEvaluator()
 
 onUnmounted(() => {
   terminateRulesEvaluator()
@@ -109,7 +109,7 @@ async function handleChange(e: Event) {
   const rulesToTrigger = settingsStore.rules.filter(({ propertyCodes }) =>
     propertyCodes.includes(id)
   )
-  const resultForm = await evaluate(toRaw(form.value), rulesToTrigger)
+  const resultForm = await evaluateRules(toRaw(form.value), rulesToTrigger)
   form.value = resultForm
 }
 </script>

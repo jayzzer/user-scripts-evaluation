@@ -1,5 +1,5 @@
 <template>
-  <NConfigProvider :theme="darkTheme">
+  <NConfigProvider :theme="lightTheme">
     <NLayout has-sider>
       <NLayoutSider
         bordered
@@ -34,7 +34,7 @@ import {
   NLayout,
   NLayoutSider,
   NMenu,
-  darkTheme,
+  lightTheme,
   type MenuOption
 } from 'naive-ui'
 import { h, ref, type Component } from 'vue'

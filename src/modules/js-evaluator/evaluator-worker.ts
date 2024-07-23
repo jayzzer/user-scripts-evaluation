@@ -1,7 +1,5 @@
 import { JS_SAFE_OBJECTS } from './safe-objects'
 
-restrictGlobalProperties([...JS_SAFE_OBJECTS, 'self', 'postMessage'])
-
 export interface EvaluatorWorkerInputMessage<CONTEXT = unknown> {
   /** Набор кодов для выполнения */
   codes: string[]
@@ -25,13 +23,14 @@ export type EvaluatorWorkerOutputMessage =
   | EvaluatorWorkerOutputSuccessMessage
   | EvaluatorWorkerOutputErrorMessage
 
-onmessage = (e: MessageEvent<EvaluatorWorkerInputMessage>) => {
+onmessage = async (e: MessageEvent<EvaluatorWorkerInputMessage>) => {
   const {
     data: { codes, context, contextName }
   } = e
 
   const errors: string[] = []
 
+  restrictGlobalProperties([...JS_SAFE_OBJECTS, 'self', 'postMessage'])
   codes.forEach((code) => {
     try {
       executeCode({ code, context, contextName })
@@ -53,13 +52,15 @@ onmessage = (e: MessageEvent<EvaluatorWorkerInputMessage>) => {
 function executeCode<CONTEXT>({
   code,
   context,
-  contextName = 'cx'
+  contextName = 'cx',
+  deps
 }: {
   code: string
   context: CONTEXT
   contextName?: string
+  deps?: Record<string, unknown>
 }) {
-  Function(contextName, code)(context)
+  Function(contextName, ...Object.keys(deps ?? {}), code)(context, ...Object.values(deps ?? {}))
 }
 
 function restrictGlobalProperties(safeProperties: string[]) {
@@ -67,25 +68,15 @@ function restrictGlobalProperties(safeProperties: string[]) {
 
   while (currentObject) {
     Object.getOwnPropertyNames(currentObject).forEach((property) => {
-      restrictObjectProperty({ target: currentObject, property, safeProperties })
+      if (safeProperties.includes(property)) return
+      restrictObjectProperty({ target: currentObject, property })
     })
 
     currentObject = Object.getPrototypeOf(currentObject)
   }
 }
 
-function restrictObjectProperty({
-  target,
-  property,
-  safeProperties
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  target: any
-  property: string
-  safeProperties: string[]
-}) {
-  if (safeProperties.includes(property)) return
-
+function restrictObjectProperty({ target, property }: { target: any; property: string }) {
   const descriptor = Object.getOwnPropertyDescriptor(target, property)
   if (!descriptor) {
     if (typeof target[property] === 'function') {

@@ -5,13 +5,7 @@ export function initJsCodeEvaluator() {
   const worker = initWebWorker(new URL('./evaluator-worker.ts', import.meta.url).toString())
 
   return {
-    evaluate: async (parameters: EvaluatorWorkerInputMessage) => {
-      const result = await worker.post<EvaluatorWorkerInputMessage, EvaluatorWorkerOutputMessage>(
-        parameters
-      )
-
-      return result
-    },
+    evaluate: worker.post<EvaluatorWorkerInputMessage, EvaluatorWorkerOutputMessage>,
     terminate: worker.terminate
   }
 }
