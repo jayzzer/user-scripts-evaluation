@@ -52,15 +52,17 @@ onmessage = async (e: MessageEvent<EvaluatorWorkerInputMessage>) => {
 function executeCode<CONTEXT>({
   code,
   context,
-  contextName = 'cx',
-  deps
+  contextName = 'cx'
 }: {
   code: string
   context: CONTEXT
   contextName?: string
-  deps?: Record<string, unknown>
 }) {
-  Function(contextName, ...Object.keys(deps ?? {}), code)(context, ...Object.values(deps ?? {}))
+  const codeToExecute = `
+    use strict;
+    ${code}
+  `
+  Function(contextName, codeToExecute)(context)
 }
 
 function restrictGlobalProperties(safeProperties: string[]) {
